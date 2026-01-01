@@ -1,0 +1,1 @@
+- [2026-01-01T09:00:00 +0300] (#1/613) feat(ai-rag): implement vector embeddings pipeline with OpenAI integration

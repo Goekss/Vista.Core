@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Vista.Core/Vista.Core.csproj" />
+  <Project Path="Vista.Tests/Vista.Tests.csproj" />
+</Solution>

@@ -1,0 +1,49 @@
+# === Environment (SECRETS) ===
+.env
+.env.local
+*.env.local
+appsettings.Development.json
+
+# === Yedekler ===
+Vista.Core_YEDEK_*/
+*_YEDEK_*/
+*.bak
+
+# === .NET Build ===
+bin/
+obj/
+*.user
+*.suo
+*.csproj.user
+
+# === IDE ===
+.vs/
+.vscode/
+.idea/
+*.swp
+
+# === Loglar & Runtime Storage ===
+Logs/
+Storage/
+*.log
+api_logs.txt
+
+# === Docs (internal) ===
+Doc/
+
+# === Frontend (varsa) ===
+frontend/node_modules/
+frontend/dist/
+node_modules/
+
+.env.example
+
+# Gizli dokumanlar
+10062026*.md
+Vista.Core/.VikaRules.md
+Vista.Core/DOSYA_YUKLEME_DOKUMENTATION.md
+Vista.Core/FRONTEND_INTEGRATION_GUIDE.md
+api_logs.txt
+
+
+

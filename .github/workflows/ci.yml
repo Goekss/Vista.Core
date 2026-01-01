@@ -1,0 +1,53 @@
+name: Vista CI/CD
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kodu al
+        uses: actions/checkout@v4
+
+      - name: .NET SDK kurulumu
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: NuGet paketlerini geri yukle
+        run: dotnet restore Vista.Core.slnx
+
+      - name: Build (Release)
+        run: dotnet build Vista.Core.slnx --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test Vista.Core.slnx --no-build --configuration Release --verbosity normal
+
+  docker-push:
+    runs-on: ubuntu-latest
+    needs: build-and-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && vars.ACR_ENABLED == 'true'
+
+    steps:
+      - name: Kodu al / Checkout Code
+        uses: actions/checkout@v4
+
+      - name: ACR'ye giris yap / ACR Login
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.ACR_LOGIN_SERVER }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Docker image build / Docker image build
+        run: docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/vista-core:latest -t ${{ secrets.ACR_LOGIN_SERVER }}/vista-core:${{ github.sha }} ./Vista.Core
+
+      - name: ACR'ye push et / ACR Push
+        run: |
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/vista-core:latest
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/vista-core:${{ github.sha }}

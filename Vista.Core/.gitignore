@@ -1,0 +1,27 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.vs/
+*.csproj.user
+
+# Logs & Storage
+Logs/
+Storage/
+
+# Environment
+.env
+appsettings.Development.json
+
+# Docs (internal plans)
+Doc/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+
+# IDE
+.idea/
+*.swp
+

@@ -1,0 +1,89 @@
+services:
+  api:
+    image: vistacore-api:latest
+    build:
+      context: ./Vista.Core
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__Default=Server=mssql,1433;Database=VistaCoreDB;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=VistaCRM
+      - Jwt__Audience=VistaCRM
+      - Jwt__ExpireMinutes=60
+      - SmtpSettings__Host=${SMTP_HOST}
+      - SmtpSettings__Port=${SMTP_PORT}
+      - SmtpSettings__User=${SMTP_EMAIL}
+      - SmtpSettings__Pass=${SMTP_PASSWORD}
+      - Vika__OllamaEndpoint=http://ollama:11434
+      - Vika__Model=llama3.2:3b
+      - Vika__EmbeddingModel=nomic-embed-text
+      - Vika__QdrantEndpoint=http://qdrant:6333
+      - Vika__QdrantApiKey=
+      - SEED_ADMIN=true
+      - Redis__Configuration=redis:6379
+      - Cors__AllowedOrigins__0=${FRONTEND_ORIGIN_1}
+      - Cors__AllowedOrigins__1=${FRONTEND_ORIGIN_2}
+      - Cors__AllowedOrigins__2=${FRONTEND_ORIGIN_3}
+    depends_on:
+      mssql:
+        condition: service_healthy
+    volumes:
+      - ./Vista.Core/.VikaRules.md:/app/.VikaRules.md:ro
+      - app-storage:/app/Storage
+      - app-logs:/app/Logs
+    restart: unless-stopped
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
+    volumes:
+      - mssql-data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -Q \"SELECT 1\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  # --- Opsiyonel servisler (RAG icin) ---
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: vistacore-qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: vistacore-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+
+volumes:
+  app-storage:
+  app-logs:
+  mssql-data:
+  redis-data:
+  qdrant-data:
+  ollama-data:
