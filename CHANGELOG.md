@@ -82,3 +82,4 @@
 - [2026-02-05T17:57:09 +0300] (#82/613) test(rag): add unit and benchmark tests for retrieval accuracy
 - [2026-02-06T11:14:38 +0300] (#83/613) chore(deps): bump semantic kernel, langchain and ef core packages
 - [2026-02-06T18:31:07 +0300] (#84/613) docs(ai): document rag architecture, vector indexing and prompt guidelines
+- [2026-02-07T12:48:36 +0300] (#85/613) feat(ai-rag): implement vector embeddings pipeline with OpenAI integration
