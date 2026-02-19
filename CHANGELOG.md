@@ -109,3 +109,4 @@
 - [2026-02-17T11:36:12 +0300] (#109/613) fix(pipeline): resolve streaming response cancellation token edge case
 - [2026-02-18T18:53:41 +0300] (#110/613) test(rag): add unit and benchmark tests for retrieval accuracy
 - [2026-02-18T12:10:10 +0300] (#111/613) chore(deps): bump semantic kernel, langchain and ef core packages
+- [2026-02-19T19:27:39 +0300] (#112/613) docs(ai): document rag architecture, vector indexing and prompt guidelines
