@@ -239,3 +239,4 @@
 - [2026-04-16T11:26:02 +0300] (#239/613) feat(ai-rag): implement vector embeddings pipeline with OpenAI integration
 - [2026-04-17T18:43:31 +0300] (#240/613) feat(rag): add semantic search and pgvector similarity indexer
 - [2026-04-17T12:00:00 +0300] (#241/613) feat(rag): implement context chunking and recursive document token splitter
+- [2026-04-17T19:17:29 +0300] (#242/613) feat(llm): add prompt template engine with dynamic context hydration
