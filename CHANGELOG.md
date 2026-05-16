@@ -304,3 +304,4 @@
 - [2026-05-15T11:51:27 +0300] (#304/613) feat(security): add tenant-isolated vector store access policies
 - [2026-05-15T18:08:56 +0300] (#305/613) fix(pipeline): resolve streaming response cancellation token edge case
 - [2026-05-16T12:25:25 +0300] (#306/613) test(rag): add unit and benchmark tests for retrieval accuracy
+- [2026-05-16T19:42:54 +0300] (#307/613) chore(deps): bump semantic kernel, langchain and ef core packages
