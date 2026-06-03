@@ -345,3 +345,4 @@
 - [2026-06-02T12:28:16 +0300] (#345/613) perf(rag): implement redis hybrid vector cache for semantic queries
 - [2026-06-03T19:45:45 +0300] (#346/613) feat(security): add tenant-isolated vector store access policies
 - [2026-06-03T13:02:14 +0300] (#347/613) fix(pipeline): resolve streaming response cancellation token edge case
+- [2026-06-03T20:19:43 +0300] (#348/613) test(rag): add unit and benchmark tests for retrieval accuracy
