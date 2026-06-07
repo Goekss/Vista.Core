@@ -353,3 +353,4 @@
 - [2026-06-06T16:44:08 +0300] (#353/613) feat(rag): implement context chunking and recursive document token splitter
 - [2026-06-06T10:01:37 +0300] (#354/613) feat(llm): add prompt template engine with dynamic context hydration
 - [2026-06-07T17:18:06 +0300] (#355/613) fix(ai): resolve token context window overflow on large rag payloads
+- [2026-06-07T11:35:35 +0300] (#356/613) fix(embeddings): handle rate limiting with exponential backoff retry
