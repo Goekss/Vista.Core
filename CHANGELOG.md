@@ -408,3 +408,4 @@
 - [2026-06-30T11:19:43 +0300] (#408/613) feat(rag): add semantic search and pgvector similarity indexer
 - [2026-07-01T18:36:12 +0300] (#409/613) feat(rag): implement context chunking and recursive document token splitter
 - [2026-07-01T12:53:41 +0300] (#410/613) feat(llm): add prompt template engine with dynamic context hydration
+- [2026-07-01T19:10:10 +0300] (#411/613) fix(ai): resolve token context window overflow on large rag payloads
