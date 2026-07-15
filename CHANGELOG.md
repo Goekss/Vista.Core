@@ -439,3 +439,4 @@
 - [2026-07-14T20:06:42 +0300] (#439/613) fix(ai): resolve token context window overflow on large rag payloads
 - [2026-07-14T14:23:11 +0300] (#440/613) fix(embeddings): handle rate limiting with exponential backoff retry
 - [2026-07-15T21:40:40 +0300] (#441/613) refactor(ai): decouple embedding generator behind IVectorService interface
+- [2026-07-15T15:57:09 +0300] (#442/613) refactor(core): optimize clean architecture domain event dispatching
