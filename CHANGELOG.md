@@ -503,3 +503,4 @@
 - [2026-08-11T13:14:38 +0300] (#503/613) chore(deps): bump semantic kernel, langchain and ef core packages
 - [2026-08-12T20:31:07 +0300] (#504/613) docs(ai): document rag architecture, vector indexing and prompt guidelines
 - [2026-08-12T14:48:36 +0300] (#505/613) feat(ai-rag): implement vector embeddings pipeline with OpenAI integration
+- [2026-08-13T21:05:05 +0300] (#506/613) feat(rag): add semantic search and pgvector similarity indexer
