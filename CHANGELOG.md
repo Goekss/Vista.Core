@@ -510,3 +510,4 @@
 - [2026-08-14T10:13:01 +0300] (#510/613) fix(embeddings): handle rate limiting with exponential backoff retry
 - [2026-08-15T17:30:30 +0300] (#511/613) refactor(ai): decouple embedding generator behind IVectorService interface
 - [2026-08-15T11:47:59 +0300] (#512/613) refactor(core): optimize clean architecture domain event dispatching
+- [2026-08-16T18:04:28 +0300] (#513/613) perf(rag): implement redis hybrid vector cache for semantic queries
