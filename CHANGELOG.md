@@ -512,3 +512,4 @@
 - [2026-08-15T11:47:59 +0300] (#512/613) refactor(core): optimize clean architecture domain event dispatching
 - [2026-08-16T18:04:28 +0300] (#513/613) perf(rag): implement redis hybrid vector cache for semantic queries
 - [2026-08-16T12:21:57 +0300] (#514/613) feat(security): add tenant-isolated vector store access policies
+- [2026-08-17T19:38:26 +0300] (#515/613) fix(pipeline): resolve streaming response cancellation token edge case
