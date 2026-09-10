@@ -567,3 +567,4 @@
 - [2026-09-09T19:22:34 +0300] (#567/613) refactor(ai): decouple embedding generator behind IVectorService interface
 - [2026-09-09T13:39:03 +0300] (#568/613) refactor(core): optimize clean architecture domain event dispatching
 - [2026-09-10T20:56:32 +0300] (#569/613) perf(rag): implement redis hybrid vector cache for semantic queries
+- [2026-09-10T14:13:01 +0300] (#570/613) feat(security): add tenant-isolated vector store access policies
