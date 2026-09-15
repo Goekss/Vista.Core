@@ -578,3 +578,4 @@
 - [2026-09-14T18:29:53 +0300] (#578/613) feat(llm): add prompt template engine with dynamic context hydration
 - [2026-09-14T12:46:22 +0300] (#579/613) fix(ai): resolve token context window overflow on large rag payloads
 - [2026-09-14T19:03:51 +0300] (#580/613) fix(embeddings): handle rate limiting with exponential backoff retry
+- [2026-09-15T13:20:20 +0300] (#581/613) refactor(ai): decouple embedding generator behind IVectorService interface
