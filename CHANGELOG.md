@@ -602,3 +602,4 @@
 - [2026-09-24T17:17:29 +0300] (#602/613) docs(ai): document rag architecture, vector indexing and prompt guidelines
 - [2026-09-25T11:34:58 +0300] (#603/613) feat(ai-rag): implement vector embeddings pipeline with OpenAI integration
 - [2026-09-25T18:51:27 +0300] (#604/613) feat(rag): add semantic search and pgvector similarity indexer
+- [2026-09-26T12:08:56 +0300] (#605/613) feat(rag): implement context chunking and recursive document token splitter
