@@ -11,21 +11,14 @@ public static class TestDbHelper
 {
     private static int _counter;
 
-    public static AppDbContext CreateContext(Guid? mandantId = null)
+    public static AppDbContext CreateContext(Guid? mandantId = null, string? dbName = null)
     {
-        var dbName = $"TestDb_{Interlocked.Increment(ref _counter)}";
+        dbName ??= $"TestDb_{Interlocked.Increment(ref _counter)}";
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase(dbName)
             .Options;
 
-        // Test ortamında query filter sorun çıkarmaması için mandantId header'ı context'e GEÇMİYORUZ
-        // Global filter atlanır, veriler filtresiz döner
-        var httpContext = new DefaultHttpContext();
-
-        var httpContextAccessor = new Mock<IHttpContextAccessor>();
-        httpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
-
-        return new AppDbContext(options, httpContextAccessor.Object);
+        return new AppDbContext(options, mandantId);
     }
 
     public static ILogger<T> CreateLogger<T>()
