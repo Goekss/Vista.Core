@@ -69,13 +69,19 @@ public class AuthController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "E-Mail-Versand fehlgeschlagen für {Email}", dto.Email);
-            return StatusCode(500, new LoginResponseDto { Nachricht = "Verifizierungscode konnte nicht gesendet werden." });
+            if (!_env.IsDevelopment())
+            {
+                return StatusCode(500, new LoginResponseDto { Nachricht = "Verifizierungscode konnte nicht gesendet werden." });
+            }
+            _logger.LogWarning("DEV MODE: E-posta gönderilemedi. Geliştirici 2FA kodu: {Code}", code);
         }
 
         return Ok(new LoginResponseDto
         {
             ZweiFaktorErforderlich = true,
-            Nachricht = "Bestätigungscode wurde an Ihre E-Mail gesendet."
+            Nachricht = _env.IsDevelopment()
+                ? $"Bestätigungscode wurde generiert (DEV MODE: {code})."
+                : "Bestätigungscode wurde an Ihre E-Mail gesendet."
         });
     }
 

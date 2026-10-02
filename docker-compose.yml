@@ -8,7 +8,7 @@ services:
       - "8080:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__Default=Server=mssql,1433;Database=VistaCoreDB;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True
+      - ConnectionStrings__Default=Server=mssql,1433;Database=VistaCoreDB;User Id=sa;Password=${MSSQL_SA_PASSWORD};TrustServerCertificate=True;Pooling=true;Min Pool Size=20;Max Pool Size=250;Connection Timeout=30;
       - Jwt__Key=${JWT_KEY}
       - Jwt__Issuer=VistaCRM
       - Jwt__Audience=VistaCRM
@@ -23,6 +23,7 @@ services:
       - Vika__QdrantEndpoint=http://qdrant:6333
       - Vika__QdrantApiKey=
       - SEED_ADMIN=true
+      - SEED_ADMIN_PASSWORD=Test123!
       - Redis__Configuration=redis:6379
       - Cors__AllowedOrigins__0=${FRONTEND_ORIGIN_1}
       - Cors__AllowedOrigins__1=${FRONTEND_ORIGIN_2}

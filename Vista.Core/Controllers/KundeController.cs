@@ -26,6 +26,8 @@ public class KundeController : ControllerBase
         _fileStorage = fileStorage;
     }
 
+    // TR: Müşterileri sayfalayarak çekeriz. Belleğin şişmesini önlemek için Skip/Take (20 kayıt) kullanıyoruz.
+    // DE: Kunden paginiert laden. Skip/Take (20 Einträge) verhindert hohe Speicherauslastung.
     [HttpGet]
     public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int size = 20, [FromQuery] string? search = null)
     {
@@ -65,6 +67,8 @@ public class KundeController : ControllerBase
         });
     }
 
+    // TR: ID ile tek müşteri çeker. Global filtre sayesinde başka kiracının verisi asla gelmez (404 döner).
+    // DE: Einzelnen Kunden per ID laden. Fremde Mandantendaten werden durch den Filter blockiert (404).
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {

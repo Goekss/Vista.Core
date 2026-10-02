@@ -30,7 +30,7 @@ public class DataIngestionService
 
     private async Task KundenIndizieren()
     {
-        var kunden = await _db.Kunden.Where(k => !k.IstGeloescht).ToListAsync();
+        var kunden = await _db.Kunden.IgnoreQueryFilters().Where(k => !k.IstGeloescht).ToListAsync();
         foreach (var k in kunden)
         {
             var text = $"Kunde: {k.Unternehmen}\nName: {k.Vorname} {k.Nachname}\nEmail: {k.Email}\nTelefon: {k.TelefonMobil}\nAdresse: {k.Adresse}";
@@ -41,7 +41,7 @@ public class DataIngestionService
 
     private async Task TicketsIndizieren()
     {
-        var tickets = await _db.Tickets.Include(t => t.Kunde).Where(t => !t.IstGeloescht).ToListAsync();
+        var tickets = await _db.Tickets.IgnoreQueryFilters().Include(t => t.Kunde).Where(t => !t.IstGeloescht).ToListAsync();
         foreach (var t in tickets)
         {
             var kunde = t.Kunde != null ? t.Kunde.Unternehmen : "Kein Kunde";
@@ -53,7 +53,7 @@ public class DataIngestionService
 
     private async Task ProjekteIndizieren()
     {
-        var projekte = await _db.Projekte.Include(p => p.Kunde).Where(p => !p.IstGeloescht).ToListAsync();
+        var projekte = await _db.Projekte.IgnoreQueryFilters().Include(p => p.Kunde).Where(p => !p.IstGeloescht).ToListAsync();
         foreach (var p in projekte)
         {
             var kunde = p.Kunde != null ? p.Kunde.Unternehmen : "Kein Kunde";

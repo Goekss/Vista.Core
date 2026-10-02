@@ -1,8 +1,10 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.SemanticKernel;
@@ -30,7 +32,14 @@ builder.Host.UseSerilog();
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<AppDbContext>(opt =>
-    opt.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+    opt.UseSqlServer(builder.Configuration.GetConnectionString("Default"), sqlOpt =>
+    {
+        sqlOpt.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null);
+        sqlOpt.CommandTimeout(30);
+    }));
 
 builder.Services.AddIdentity<Benutzer, IdentityRole>(opt =>
 {
@@ -124,17 +133,16 @@ builder.Services.AddSingleton<IKernelMemory>(sp =>
 {
     try
     {
+        var ollamaConfig = new OllamaConfig
+        {
+            Endpoint = ollamaEndpoint,
+            TextModel = new OllamaModelConfig(chatModel),
+            EmbeddingModel = new OllamaModelConfig(embeddingModel)
+        };
+
         var memoryBuilder = new KernelMemoryBuilder()
-            .WithOllamaTextEmbeddingGeneration(new OllamaConfig
-            {
-                Endpoint = ollamaEndpoint,
-                EmbeddingModel = new OllamaModelConfig(embeddingModel)
-            })
-            .WithOllamaTextGeneration(new OllamaConfig
-            {
-                Endpoint = ollamaEndpoint,
-                TextModel = new OllamaModelConfig(chatModel)
-            });
+            .WithOllamaTextGeneration(ollamaConfig)
+            .WithOllamaTextEmbeddingGeneration(ollamaConfig);
 
         if (useQdrant)
         {
@@ -198,6 +206,23 @@ builder.Services.AddCors(opt => opt.AddPolicy("AllowFrontend", policy =>
         .AllowCredentials();
 }));
 
+// Rate Limiting: 500-1000 kullanıcılı ani yüklerde DDoS ve DB kilitlenmesini önler (IP başı 300 istek/dk)
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(httpContext =>
+        RateLimitPartition.GetSlidingWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            factory: _ => new SlidingWindowRateLimiterOptions
+            {
+                PermitLimit = 300,
+                Window = TimeSpan.FromMinutes(1),
+                SegmentsPerWindow = 6,
+                QueueLimit = 50,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+            }));
+});
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -225,6 +250,7 @@ app.UseStaticFiles(new StaticFileOptions
 });
 
 app.UseCors("AllowFrontend");
+app.UseRateLimiter();
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseAuthentication();

@@ -61,7 +61,8 @@ public class BerichtController : ControllerBase
 
         var ordner = Path.Combine(_env.ContentRootPath, "Storage", "berichte", bericht.Id.ToString());
         Directory.CreateDirectory(ordner);
-        var pfad = Path.Combine(ordner, datei.FileName);
+        var safeFileName = Path.GetFileName(datei.FileName);
+        var pfad = Path.Combine(ordner, safeFileName);
 
         using (var stream = System.IO.File.Create(pfad))
             await datei.CopyToAsync(stream);
@@ -84,9 +85,9 @@ public class BerichtController : ControllerBase
         if (!System.IO.File.Exists(bericht.DateiPfad))
             return NotFound(new { Nachricht = "Datei nicht gefunden." });
 
-        var bytes = await System.IO.File.ReadAllBytesAsync(bericht.DateiPfad);
+
         var fileName = Path.GetFileName(bericht.DateiPfad);
-        return File(bytes, bericht.DateiTyp, fileName);
+        return PhysicalFile(bericht.DateiPfad, bericht.DateiTyp, fileName);
     }
 
     [HttpDelete("{id}")]

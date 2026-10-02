@@ -81,15 +81,6 @@ public class VikaChatBotService
             ? await HoleRagKontext(nachricht, mandantId)
             : new RagContext(false, null, "LLM", 0d);
 
-        if (route == AnfrageRoute.Data && BrauchtRagBeleg(nachricht) && !rag.HatKontext)
-        {
-            return new ChatBotResponseDto
-            {
-                Antwort = "Ich habe dazu keine belastbaren Daten gefunden.",
-                Quelle = "RAG",
-                RelevanzScore = rag.BesteRelevanz
-            };
-        }
 
         var allowTools = route == AnfrageRoute.Data;
         var history = ErstelleHistory(nachricht, rag.KontextText, sprachPolicy.SystemHint, allowTools);
@@ -131,11 +122,6 @@ public class VikaChatBotService
             ? await HoleRagKontext(nachricht, mandantId)
             : new RagContext(false, null, "LLM", 0d);
 
-        if (route == AnfrageRoute.Data && BrauchtRagBeleg(nachricht) && !rag.HatKontext)
-        {
-            yield return "Ich habe dazu keine belastbaren Daten gefunden.";
-            yield break;
-        }
 
         var allowTools = route == AnfrageRoute.Data;
         var history = ErstelleHistory(nachricht, rag.KontextText, sprachPolicy.SystemHint, allowTools);
@@ -162,6 +148,8 @@ public class VikaChatBotService
             route, mandantId, rag.HatKontext, rag.BesteRelevanz, final.Length);
     }
 
+    // TR: Her istek için çekirdeği klonlayıp pluginleri ekliyoruz ki istekler izole kalsın.
+    // DE: Wir klonen den Kernel pro Request, damit die Plugins für jeden Aufruf isoliert bleiben.
     private Kernel KernelMitPlugins()
     {
         var clone = _kernel.Clone();
@@ -171,6 +159,8 @@ public class VikaChatBotService
         return clone;
     }
 
+    // TR: Mesaj yapay zekaya gitmeden önce prompt injection ve günlük limit kontrolü yapılır.
+    // DE: Vorprüfung auf Prompt-Injection und tägliches Kontingent, bevor LLM aufgerufen wird.
     private async Task<(bool IstErlaubt, string Fehlermeldung)> VorPruefung(string nachricht, Guid mandantId)
     {
         var (istErlaubt, grund) = _inputFilter.Validieren(nachricht);
@@ -272,13 +262,7 @@ public class VikaChatBotService
         cleaned = Regex.Replace(cleaned, @"(?i)would you like.*$", "", RegexOptions.Singleline).Trim();
         cleaned = Regex.Replace(cleaned, @"(?i)i support english, german, french, and italian\.?", "", RegexOptions.Singleline).Trim();
 
-        var paragraphs = cleaned
-            .Split(["\r\n\r\n", "\n\n"], StringSplitOptions.RemoveEmptyEntries)
-            .Select(p => p.Trim())
-            .Where(p => !string.IsNullOrWhiteSpace(p))
-            .ToList();
-
-        return paragraphs.Count > 0 ? paragraphs[0] : cleaned;
+        return cleaned;
     }
 
     private static AnfrageRoute BestimmeRoute(string nachricht)
@@ -317,9 +301,9 @@ public class VikaChatBotService
         if (string.IsNullOrWhiteSpace(text))
             return (null, null);
 
-        if (ContainsTurkishChars(text) || Regex.IsMatch(text, @"\b(selam|merhaba|nasıl|nasil|hangi|konus|konuş|orada|ordamsin)\b", RegexOptions.IgnoreCase))
+        if (ContainsTurkishChars(text) || Regex.IsMatch(text, @"\b(selam|merhaba|nasıl|nasil|hangi|konus|konuş|orada|ordamsin|bilet|müşteri|musteri|proje)\b", RegexOptions.IgnoreCase))
         {
-            return ("I support English, German, French, and Italian.", null);
+            return (null, "Yanıtını sadece Türkçe olarak ver. Net, öz ve kurumsal ol.");
         }
 
         if (Regex.IsMatch(text, @"\b(bonjour|salut|merci|fran[çc]ais)\b", RegexOptions.IgnoreCase))

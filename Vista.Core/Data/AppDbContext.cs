@@ -11,15 +11,23 @@ public class AppDbContext : IdentityDbContext<Benutzer>
 {
     private readonly Guid? _currentMandantId;
 
-    public AppDbContext(DbContextOptions<AppDbContext> options, IHttpContextAccessor httpContextAccessor)
+    public Guid? CurrentMandantId => _currentMandantId;
+
+    public AppDbContext(DbContextOptions<AppDbContext> options, IHttpContextAccessor? httpContextAccessor = null)
         : base(options)
     {
-        var mandantClaim = httpContextAccessor.HttpContext?.User?.FindFirst("MandantId")?.Value;
+        var mandantClaim = httpContextAccessor?.HttpContext?.User?.FindFirst("MandantId")?.Value;
 
         if (Guid.TryParse(mandantClaim, out var mandantId))
         {
             _currentMandantId = mandantId;
         }
+    }
+
+    public AppDbContext(DbContextOptions<AppDbContext> options, Guid? currentMandantId)
+        : base(options)
+    {
+        _currentMandantId = currentMandantId;
     }
 
     public DbSet<Mandant> Mandanten => Set<Mandant>();
@@ -55,13 +63,20 @@ public class AppDbContext : IdentityDbContext<Benutzer>
         }
     }
 
+    // TR: Her sorguda kiracı filtresini otomatik uygularız, böylece başka şirketin verisi asla gelmez.
+    // DE: Automatischer Mandantenfilter bei jeder Abfrage, um Datenlecks zwischen Mandanten zu verhindern.
     private void SetMandantFilter<TEntity>(ModelBuilder modelBuilder)
         where TEntity : MandantEntity
     {
-        // _currentMandantId instance field'ina referans: EF Core bunu her context
-        // ornegi icin ayri degerlendirir (model cache'e sabit deger gomulmez).
-        // Anonim isteklerde (null) filtre devre disi kalir.
+        // TR: MandantId eşleşmeyen veya null olan isteklerde veriyi gizle.
+        // DE: Datensätze ausblenden, wenn MandantId nicht übereinstimmt oder null ist.
         modelBuilder.Entity<TEntity>().HasQueryFilter(
-            e => _currentMandantId == null || e.MandantId == _currentMandantId);
+            e => _currentMandantId != null && e.MandantId == _currentMandantId);
+
+        // TR: 500-1000 eşzamanlı istekte sorgu hızını korumak için bileşik indeks.
+        // DE: Zusammengesetzter Index für hohe Performance bei gleichzeitigen Abfragen.
+        modelBuilder.Entity<TEntity>()
+            .HasIndex(e => new { e.MandantId, e.IstGeloescht })
+            .HasDatabaseName($"IX_{typeof(TEntity).Name}_Mandant_Geloescht");
     }
 }
