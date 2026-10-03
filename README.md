@@ -7,197 +7,8 @@
 ![Security](https://img.shields.io/badge/Security-Strict%20Tenant%20Filter%20%2B%202FA-red)
 ![AI Assistant](https://img.shields.io/badge/AI-Semantic%20Kernel%20%2B%20Ollama-blue)
 
-**Choose Language / Sprache auswählen / Dil Seçin:**  
-[🇬🇧 English](#-english) &nbsp;•&nbsp; [🇩🇪 Deutsch](#-deutsch) &nbsp;•&nbsp; [🇹🇷 Türkçe](#-türkçe)
-
----
-
-<a id="-english"></a>
-## 🇬🇧 English
-
-**Vista.Core** is an enterprise-grade multi-tenant **CRM and SaaS backend** engineered for small and medium-sized enterprises (SMEs) running on **.NET 9 Web API**. It manages customers, projects, support tickets, real-time messaging, and subscription workflows.  
-Its hallmark feature is **ViKa**, a GDPR-compliant, **fully offline AI assistant (RAG)** that never sends confidential business data to external cloud providers (such as OpenAI).
-
----
-
-### 🎯 Business Value & Core Objective
-Standard SaaS CRMs often stream confidential records to third-party AI clouds. In regulated industries (banking, insurance, healthcare, legal), this represents a critical security and compliance violation.
-
-**Vista.Core eliminates this risk with two core architectural pillars:**
-1. **Strict Tenant Isolation:** Data isolation is enforced at the database layer; Tenant A can never view or modify Tenant B's data.
-2. **100% On-Premise AI (ViKa):** RAG (Retrieval-Augmented Generation) queries execute locally against self-hosted Ollama and vector containers.
-
----
-
-### 🏗️ Architecture Overview
-
-```mermaid
-flowchart TD
-    subgraph ClientLayer["Client Layer"]
-        FE["React 19 Frontend<br/>(Vite + Tailwind)"]
-        SWAGGER["Swagger UI<br/>(OpenAPI Test)"]
-    end
-
-    subgraph ApiGateway["API & Security (.NET 9)"]
-        AUTH["JWT Bearer + 2FA Verify"]
-        MW["Exception & Logging Middleware"]
-        HUB["SignalR Hubs (Chat & Notifications)"]
-        CTRL["REST Controllers"]
-    end
-
-    subgraph CoreLayer["Business Logic & Services"]
-        SERVICES["Customer, Ticket, Project, Auth Services"]
-        VIKA["ViKa AI Engine<br/>(Semantic Kernel 1.x)"]
-        PLUGINS["Live SQL Plugins<br/>(CustomerPlugin, TicketPlugin, ProjectPlugin)"]
-    end
-
-    subgraph DataLayer["Data & Tenant Isolation"]
-        EF["AppDbContext<br/>(Global HasQueryFilter via MandantId)"]
-        MSSQL[("SQL Server 2022")]
-        REDIS[("Redis 7 Cache<br/>(2FA & Session)")]
-        QDRANT[("Qdrant Vector DB<br/>(RAG Knowledge Base)")]
-        OLLAMA["Ollama LLM<br/>(llama3.2:3b + nomic-embed-text)"]
-    end
-
-    FE -->|REST / HTTPS| AUTH
-    SWAGGER -->|REST / HTTPS| AUTH
-    AUTH --> MW --> CTRL
-    FE -->|WebSockets| HUB
-    CTRL --> SERVICES
-    CTRL --> VIKA
-    VIKA --> PLUGINS
-    SERVICES --> EF
-    PLUGINS --> EF
-    EF --> MSSQL
-    SERVICES --> REDIS
-    VIKA --> QDRANT
-    VIKA --> OLLAMA
-```
-
----
-
-### 📂 Clean Architecture Project Structure
-
-```text
-Vista.Core/
-├── Controllers/              # REST Endpoints (Customer, Ticket, Auth, Chat, VikaAdmin etc.)
-├── Services/                 # Core Business Services
-│   ├── ChatBot/              # ViKa AI Assistant, RAG Engine, Input/Output Filters
-│   ├── JwtService.cs         # JWT Generation & Refresh Token Rotation
-│   ├── ZweiFaktorService.cs  # Redis-backed 2FA OTP Service
-│   ├── FileStorageService.cs # Path-traversal-safe file upload engine
-│   └── EmailService.cs       # Templated notification & 2FA email service
-├── Data/                     # Data Access Layer
-│   ├── AppDbContext.cs       # EF Core DbContext & Global Multi-Tenant Query Filter
-│   └── DataSeeder.cs         # Automated seed of Admin, Demo Tenant & Sample Data
-├── Models/                   # Domain Entities (Base & Tenant Entities)
-├── Plugins/                  # Semantic Kernel Plugins (Live SQL Database Tooling)
-├── Hubs/                     # SignalR Real-Time Hubs (ChatHub, VikaChatBotHub, NotificationHub)
-├── DTOs/                     # Request & Response Data Transfer Objects
-├── Validators/               # FluentValidation Rules
-└── Program.cs                # DI Container, Middleware Pipeline & Configuration
-```
-
----
-
-### 🛡️ AppDbContext-Level Tenant Isolation
-
-Data isolation is never delegated to fragile manual `if` checks in controllers. It is enforced globally in the ORM (`AppDbContext`):
-
-```csharp
-// AppDbContext.cs
-protected override void OnModelCreating(ModelBuilder modelBuilder)
-{
-    base.OnModelCreating(modelBuilder);
-
-    foreach (var entityType in modelBuilder.Model.GetEntityTypes()
-                 .Where(t => typeof(MandantEntity).IsAssignableFrom(t.ClrType)))
-    {
-        modelBuilder.Entity(entityType.ClrType).HasQueryFilter(
-            e => _currentMandantId != null && EF.Property<Guid>(e, "MandantId") == _currentMandantId);
-    }
-}
-```
-* **Guarantee:** Every LINQ query (`_db.Kunden.ToListAsync()`) automatically executes with `WHERE MandantId = '...'`.
-* Unauthenticated requests or missing claims return **0 records**, mathematically preventing cross-tenant data leaks.
-
----
-
-### 🔄 Customer Creation Flow
-
-```text
-[1. Client Request]
-  POST /api/Kunde  |  Header: Authorization: Bearer <JWT_TOKEN>
-  Body: { "unternehmen": "TechBank AG", "email": "info@techbank.de" }
-          │
-          ▼
-[2. Authentication Middleware]
-  JWT is decoded ➔ "MandantId" claim is extracted from user identity.
-          │
-          ▼
-[3. FluentValidation]
-  KundeRequestDtoValidator validates required fields and formats.
-          │
-          ▼
-[4. Controller]
-  MandantId is assigned: kunde.MandantId = mandantId.Value;
-          │
-          ▼
-[5. AppDbContext]
-  Entity is saved to Microsoft SQL Server.
-          │
-          ▼
-[6. Subsequent Queries]
-  Global Query Filter ensures only the creator tenant can read the customer.
-```
-
----
-
-### 🚀 Quick Start (Docker)
-
-```bash
-git clone https://github.com/Daddarios/vista-saas-backend.git
-cd vista-saas-backend
-cp .env.example .env
-docker compose up -d --build
-```
-
-* **Swagger UI:** `http://localhost:8080/swagger`
-* **Default Credentials:** Email: `admin@vista.local` | Password: `Test123!` | Role: `SuperAdmin`
-
----
-
-### 🧪 6 Security & Isolation Tests (xUnit)
-
-```bash
-dotnet test Vista.Tests/Vista.Tests.csproj
-```
-* ✅ **Test 1:** List query tenant data isolation (`GetAll`).
-* ✅ **Test 2:** Direct ID query for another tenant's entity returns `404 Not Found`.
-* ✅ **Test 3:** Cross-tenant updates and deletions are strictly blocked (`PUT`/`DELETE` ➔ `404`).
-* ✅ **Test 4:** Anonymous/claimless queries return zero records.
-* ✅ **Test 5:** 2FA validation and JWT session generation flow.
-* ✅ **Test 6:** Role-based access control enforcement (`NurLesen` read-only restriction).
-
----
-
-### 💻 Tech Stack
-
-| Layer | Technology |
-| :--- | :--- |
-| **Backend** | .NET 9 · ASP.NET Core Web API · C# 13 |
-| **Database & ORM** | Microsoft SQL Server 2022 · Entity Framework Core 9 |
-| **Identity & Security** | ASP.NET Core Identity · JWT · 2FA (Redis OTP) |
-| **Real-Time** | SignalR (Chat & Notifications) |
-| **AI Assistant (RAG)** | Semantic Kernel 1.x · Kernel Memory · Ollama (`llama3.2:3b`, `nomic-embed-text`) · Qdrant |
-| **Validation & Logging** | FluentValidation · Serilog |
-| **Testing & DevOps** | xUnit · Docker Compose · GitHub Actions CI/CD |
-
----
-
-### 📄 License
-
-This project is licensed under the MIT License — see the LICENSE file for details.
+**Sprache auswählen / Dil Seçin / Choose Language:**  
+[🇩🇪 Deutsch](#-deutsch) &nbsp;•&nbsp; [🇹🇷 Türkçe](#-türkçe) &nbsp;•&nbsp; [🇬🇧 English](#-english)
 
 ---
 
@@ -382,11 +193,15 @@ dotnet test Vista.Tests/Vista.Tests.csproj
 | **Validierung & Logging** | FluentValidation · Serilog |
 | **Testing & DevOps** | xUnit · Docker Compose · GitHub Actions CI/CD |
 
+> [!NOTE]
+> **💳 Zahlungs- und Transaktionsverwaltung (Microservice Roadmap):**  
+> Bank-/IBAN-Verwaltung, Checkout-Prozesse, Zahlungsbestätigungen und Transaktions-Tracking sind derzeit vom Core-Backend entkoppelt. Diese Module werden als eigenständiger **Payment-Microservice** mit Fokus auf Skalierbarkeit und PCI-DSS-Konformität realisiert.
+
 ---
 
-### 📄 Lizenz
+### 📌 Projekt-Status
 
-Dieses Projekt ist unter der MIT-Lizenz lizenziert — siehe LICENSE-Datei für Details.
+Dies ist ein persönliches Projekt zu Demonstrationszwecken. Der Quellcode kann von jedem frei eingesehen, geklont oder heruntergeladen werden.
 
 ---
 
@@ -571,8 +386,205 @@ dotnet test Vista.Tests/Vista.Tests.csproj
 | **Doğrulama & Günlük** | FluentValidation · Serilog |
 | **Test & DevOps** | xUnit · Docker Compose · GitHub Actions CI/CD |
 
+> [!NOTE]
+> **💳 Ödeme ve İşlem Yönetimi (Payment Microservice):**  
+> Banka/IBAN yönetimi, ödeme başlatma (checkout), işlem onayı ve dekont/transaksiyon takibi gibi finansal işlevler mevcut çekirdek API'ye dahil edilmemiştir. Bu yapı, yüksek güvenlik ve PCI-DSS uyumluluğu gözetilerek bağımsız bir **Ödeme ve Finans Mikroservisi (Payment Microservice)** olarak geliştirilip sisteme entegre edilecektir.
+
 ---
 
-### 📄 Lisans
+### 📌 Proje Durumu
 
-Bu proje MIT Lisansı ile korunmaktadır — detaylar için LICENSE dosyasına bakınız.
+Bu çalışma kişisel bir vitrin ve geliştirme projesidir; lisans kısıtlaması bulunmamaktadır, dileyen herkes projeyi inceleyebilir veya indirebilir.
+
+---
+
+<a id="-english"></a>
+## 🇬🇧 English
+
+**Vista.Core** is an enterprise-grade multi-tenant **CRM and SaaS backend** engineered for small and medium-sized enterprises (SMEs) running on **.NET 9 Web API**. It manages customers, projects, support tickets, real-time messaging, and subscription workflows.  
+Its hallmark feature is **ViKa**, a GDPR-compliant, **fully offline AI assistant (RAG)** that never sends confidential business data to external cloud providers (such as OpenAI).
+
+---
+
+### 🎯 Business Value & Core Objective
+Standard SaaS CRMs often stream confidential records to third-party AI clouds. In regulated industries (banking, insurance, healthcare, legal), this represents a critical security and compliance violation.
+
+**Vista.Core eliminates this risk with two core architectural pillars:**
+1. **Strict Tenant Isolation:** Data isolation is enforced at the database layer; Tenant A can never view or modify Tenant B's data.
+2. **100% On-Premise AI (ViKa):** RAG (Retrieval-Augmented Generation) queries execute locally against self-hosted Ollama and vector containers.
+
+---
+
+### 🏗️ Architecture Overview
+
+```mermaid
+flowchart TD
+    subgraph ClientLayer["Client Layer"]
+        FE["React 19 Frontend<br/>(Vite + Tailwind)"]
+        SWAGGER["Swagger UI<br/>(OpenAPI Test)"]
+    end
+
+    subgraph ApiGateway["API & Security (.NET 9)"]
+        AUTH["JWT Bearer + 2FA Verify"]
+        MW["Exception & Logging Middleware"]
+        HUB["SignalR Hubs (Chat & Notifications)"]
+        CTRL["REST Controllers"]
+    end
+
+    subgraph CoreLayer["Business Logic & Services"]
+        SERVICES["Customer, Ticket, Project, Auth Services"]
+        VIKA["ViKa AI Engine<br/>(Semantic Kernel 1.x)"]
+        PLUGINS["Live SQL Plugins<br/>(CustomerPlugin, TicketPlugin, ProjectPlugin)"]
+    end
+
+    subgraph DataLayer["Data & Tenant Isolation"]
+        EF["AppDbContext<br/>(Global HasQueryFilter via MandantId)"]
+        MSSQL[("SQL Server 2022")]
+        REDIS[("Redis 7 Cache<br/>(2FA & Session)")]
+        QDRANT[("Qdrant Vector DB<br/>(RAG Knowledge Base)")]
+        OLLAMA["Ollama LLM<br/>(llama3.2:3b + nomic-embed-text)"]
+    end
+
+    FE -->|REST / HTTPS| AUTH
+    SWAGGER -->|REST / HTTPS| AUTH
+    AUTH --> MW --> CTRL
+    FE -->|WebSockets| HUB
+    CTRL --> SERVICES
+    CTRL --> VIKA
+    VIKA --> PLUGINS
+    SERVICES --> EF
+    PLUGINS --> EF
+    EF --> MSSQL
+    SERVICES --> REDIS
+    VIKA --> QDRANT
+    VIKA --> OLLAMA
+```
+
+---
+
+### 📂 Clean Architecture Project Structure
+
+```text
+Vista.Core/
+├── Controllers/              # REST Endpoints (Customer, Ticket, Auth, Chat, VikaAdmin etc.)
+├── Services/                 # Core Business Services
+│   ├── ChatBot/              # ViKa AI Assistant, RAG Engine, Input/Output Filters
+│   ├── JwtService.cs         # JWT Generation & Refresh Token Rotation
+│   ├── ZweiFaktorService.cs  # Redis-backed 2FA OTP Service
+│   ├── FileStorageService.cs # Path-traversal-safe file upload engine
+│   └── EmailService.cs       # Templated notification & 2FA email service
+├── Data/                     # Data Access Layer
+│   ├── AppDbContext.cs       # EF Core DbContext & Global Multi-Tenant Query Filter
+│   └── DataSeeder.cs         # Automated seed of Admin, Demo Tenant & Sample Data
+├── Models/                   # Domain Entities (Base & Tenant Entities)
+├── Plugins/                  # Semantic Kernel Plugins (Live SQL Database Tooling)
+├── Hubs/                     # SignalR Real-Time Hubs (ChatHub, VikaChatBotHub, NotificationHub)
+├── DTOs/                     # Request & Response Data Transfer Objects
+├── Validators/               # FluentValidation Rules
+└── Program.cs                # DI Container, Middleware Pipeline & Configuration
+```
+
+---
+
+### 🛡️ AppDbContext-Level Tenant Isolation
+
+Data isolation is never delegated to fragile manual `if` checks in controllers. It is enforced globally in the ORM (`AppDbContext`):
+
+```csharp
+// AppDbContext.cs
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    base.OnModelCreating(modelBuilder);
+
+    foreach (var entityType in modelBuilder.Model.GetEntityTypes()
+                 .Where(t => typeof(MandantEntity).IsAssignableFrom(t.ClrType)))
+    {
+        modelBuilder.Entity(entityType.ClrType).HasQueryFilter(
+            e => _currentMandantId != null && EF.Property<Guid>(e, "MandantId") == _currentMandantId);
+    }
+}
+```
+* **Guarantee:** Every LINQ query (`_db.Kunden.ToListAsync()`) automatically executes with `WHERE MandantId = '...'`.
+* Unauthenticated requests or missing claims return **0 records**, mathematically preventing cross-tenant data leaks.
+
+---
+
+### 🔄 Customer Creation Flow
+
+```text
+[1. Client Request]
+  POST /api/Kunde  |  Header: Authorization: Bearer <JWT_TOKEN>
+  Body: { "unternehmen": "TechBank AG", "email": "info@techbank.de" }
+          │
+          ▼
+[2. Authentication Middleware]
+  JWT is decoded ➔ "MandantId" claim is extracted from user identity.
+          │
+          ▼
+[3. FluentValidation]
+  KundeRequestDtoValidator validates required fields and formats.
+          │
+          ▼
+[4. Controller]
+  MandantId is assigned: kunde.MandantId = mandantId.Value;
+          │
+          ▼
+[5. AppDbContext]
+  Entity is saved to Microsoft SQL Server.
+          │
+          ▼
+[6. Subsequent Queries]
+  Global Query Filter ensures only the creator tenant can read the customer.
+```
+
+---
+
+### 🚀 Quick Start (Docker)
+
+```bash
+git clone https://github.com/Daddarios/vista-saas-backend.git
+cd vista-saas-backend
+cp .env.example .env
+docker compose up -d --build
+```
+
+* **Swagger UI:** `http://localhost:8080/swagger`
+* **Default Credentials:** Email: `admin@vista.local` | Password: `Test123!` | Role: `SuperAdmin`
+
+---
+
+### 🧪 6 Security & Isolation Tests (xUnit)
+
+```bash
+dotnet test Vista.Tests/Vista.Tests.csproj
+```
+* ✅ **Test 1:** List query tenant data isolation (`GetAll`).
+* ✅ **Test 2:** Direct ID query for another tenant's entity returns `404 Not Found`.
+* ✅ **Test 3:** Cross-tenant updates and deletions are strictly blocked (`PUT`/`DELETE` ➔ `404`).
+* ✅ **Test 4:** Anonymous/claimless queries return zero records.
+* ✅ **Test 5:** 2FA validation and JWT session generation flow.
+* ✅ **Test 6:** Role-based access control enforcement (`NurLesen` read-only restriction).
+
+---
+
+### 💻 Tech Stack
+
+| Layer | Technology |
+| :--- | :--- |
+| **Backend** | .NET 9 · ASP.NET Core Web API · C# 13 |
+| **Database & ORM** | Microsoft SQL Server 2022 · Entity Framework Core 9 |
+| **Identity & Security** | ASP.NET Core Identity · JWT · 2FA (Redis OTP) |
+| **Real-Time** | SignalR (Chat & Notifications) |
+| **AI Assistant (RAG)** | Semantic Kernel 1.x · Kernel Memory · Ollama (`llama3.2:3b`, `nomic-embed-text`) · Qdrant |
+| **Validation & Logging** | FluentValidation · Serilog |
+| **Testing & DevOps** | xUnit · Docker Compose · GitHub Actions CI/CD |
+
+> [!NOTE]
+> **💳 Payment & Transaction Management (Microservice Roadmap):**  
+> Bank/IBAN operations, checkout triggers, payment approvals, and transaction tracking are decoupled from the core API. These capabilities are planned as a dedicated, independent **Payment & Billing Microservice** to ensure high scalability and PCI-DSS compliance.
+
+---
+
+### 📌 Project Status
+
+This is a personal showcase project. Anyone is free to explore, clone, or download the codebase.
