@@ -1,6 +1,6 @@
 # 🌟 Vista.Core — Multi-Tenant CRM & Local AI SaaS Backend
 
-[![Vista CI/CD](https://github.com/Daddarios/vista-saas-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/Daddarios/vista-saas-backend/actions/workflows/ci.yml)
+[![Vista CI/CD](https://github.com/Goekss/Vista.Core/actions/workflows/ci.yml/badge.svg)](https://github.com/Goekss/Vista.Core/actions/workflows/ci.yml)
 ![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4?logo=dotnet&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)
 ![Architecture](https://img.shields.io/badge/Architecture-Clean%20%26%20Multi--Tenant-green)
@@ -156,8 +156,8 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 ### 🚀 Schnellstart (Docker)
 
 ```bash
-git clone https://github.com/Daddarios/vista-saas-backend.git
-cd vista-saas-backend
+git clone https://github.com/Goekss/Vista.Core.git
+cd Vista.Core
 cp .env.example .env
 docker compose up -d --build
 ```
@@ -349,8 +349,8 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 ### 🚀 Hızlı Başlangıç (Docker)
 
 ```bash
-git clone https://github.com/Daddarios/vista-saas-backend.git
-cd vista-saas-backend
+git clone https://github.com/Goekss/Vista.Core.git
+cd Vista.Core
 cp .env.example .env
 docker compose up -d --build
 ```
@@ -434,7 +434,7 @@ flowchart TD
     subgraph CoreLayer["Business Logic & Services"]
         SERVICES["Customer, Ticket, Project, Auth Services"]
         VIKA["ViKa AI Engine<br/>(Semantic Kernel 1.x)"]
-        PLUGINS["Live SQL Plugins<br/>(CustomerPlugin, TicketPlugin, ProjectPlugin)"]
+        PLUGINS["Live SQL Plugins<br/>(KundePlugin, TicketPlugin, ProjektPlugin)"]
     end
 
     subgraph DataLayer["Data & Tenant Isolation"]
@@ -542,8 +542,8 @@ protected override void OnModelCreating(ModelBuilder modelBuilder)
 ### 🚀 Quick Start (Docker)
 
 ```bash
-git clone https://github.com/Daddarios/vista-saas-backend.git
-cd vista-saas-backend
+git clone https://github.com/Goekss/Vista.Core.git
+cd Vista.Core
 cp .env.example .env
 docker compose up -d --build
 ```
