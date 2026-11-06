@@ -75,11 +75,15 @@ public class BenutzerController : ControllerBase
         });
     }
 
+    [Authorize(Roles = "Admin,SuperAdmin")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] BenutzerCreateDto dto)
     {
         var mandantId = GetMandantId();
         if (mandantId is null) return BadRequest(new { Nachricht = "MandantId fehlt." });
+
+        if (!DarfRolleVergeben(dto.Rolle, out var fehler))
+            return StatusCode(403, new { Nachricht = fehler });
 
         var benutzer = new Benutzer
         {
@@ -105,6 +109,7 @@ public class BenutzerController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = benutzer.Id }, new { benutzer.Id });
     }
 
+    [Authorize(Roles = "Admin,SuperAdmin")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(string id, [FromBody] BenutzerUpdateDto dto)
     {
@@ -122,6 +127,9 @@ public class BenutzerController : ControllerBase
 
         if (!string.IsNullOrWhiteSpace(dto.Rolle) && dto.Rolle != benutzer.Rolle)
         {
+            if (!DarfRolleVergeben(dto.Rolle, out var fehler))
+                return StatusCode(403, new { Nachricht = fehler });
+
             var currentRoles = await _userManager.GetRolesAsync(benutzer);
             await _userManager.RemoveFromRolesAsync(benutzer, currentRoles);
             await _userManager.AddToRoleAsync(benutzer, dto.Rolle);
@@ -134,6 +142,7 @@ public class BenutzerController : ControllerBase
         return NoContent();
     }
 
+    [Authorize(Roles = "Admin,SuperAdmin")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(string id)
     {
@@ -216,6 +225,35 @@ public class BenutzerController : ControllerBase
     private string? GetMandantId()
     {
         return User.FindFirst("MandantId")?.Value;
+    }
+
+    // TR: SuperAdmin dışındaki rolleri yalnızca Admin/SuperAdmin atayabilir; Manager rol atayamaz.
+    // DE: Nur Admin/SuperAdmin dürfen Rollen vergeben (außer SuperAdmin); Manager darf keine Rollen vergeben.
+    private static readonly string[] ZuweisbareRollen = { "Admin", "Manager", "Standard", "NurLesen" };
+
+    private bool DarfRolleVergeben(string? rolle, out string fehler)
+    {
+        fehler = string.Empty;
+
+        if (string.IsNullOrWhiteSpace(rolle))
+            return true;
+
+        if (User.IsInRole("SuperAdmin"))
+            return true;
+
+        if (!ZuweisbareRollen.Contains(rolle))
+        {
+            fehler = "Diese Rolle darf nicht vergeben werden.";
+            return false;
+        }
+
+        if (!User.IsInRole("Admin"))
+        {
+            fehler = "Nur Administratoren dürfen Rollen vergeben.";
+            return false;
+        }
+
+        return true;
     }
 }
 

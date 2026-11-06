@@ -206,7 +206,12 @@ public class AuthController : ControllerBase
     [HttpGet("locked-users")]
     public async Task<IActionResult> GetLockedUsers()
     {
-        var alleBenutzer = _userManager.Users.ToList();
+        var mandantId = GetMandantId();
+        if (mandantId is null) return BadRequest(new { Nachricht = "MandantId fehlt." });
+
+        var alleBenutzer = _userManager.Users
+            .Where(b => b.MandantId == mandantId)
+            .ToList();
         var gesperrteBenutzer = new List<object>();
 
         foreach (var benutzer in alleBenutzer)
@@ -234,8 +239,11 @@ public class AuthController : ControllerBase
     [HttpPost("unlock/{email}")]
     public async Task<IActionResult> UnlockUser(string email)
     {
+        var mandantId = GetMandantId();
+        if (mandantId is null) return BadRequest(new { Nachricht = "MandantId fehlt." });
+
         var benutzer = await _userManager.FindByEmailAsync(email);
-        if (benutzer is null)
+        if (benutzer is null || benutzer.MandantId != mandantId)
             return NotFound(new { Nachricht = "Benutzer nicht gefunden." });
 
         await _userManager.SetLockoutEndDateAsync(benutzer, null);
@@ -244,6 +252,11 @@ public class AuthController : ControllerBase
         _logger.LogInformation("Benutzer {Email} wurde entsperrt", email);
 
         return Ok(new { Nachricht = $"Benutzer {email} wurde erfolgreich entsperrt." });
+    }
+
+    private string? GetMandantId()
+    {
+        return User.FindFirst("MandantId")?.Value;
     }
 
     /// <summary>

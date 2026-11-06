@@ -167,6 +167,23 @@ docker compose up -d --build
 
 ---
 
+### ☁️ Deployment (Azure VM)
+
+1. **Voraussetzung:** Eine Azure Ubuntu-VM mit installiertem Docker.
+2. **GitHub Secrets** hinterlegen: `AZURE_VM_HOST`, `AZURE_VM_USER`, `AZURE_VM_SSH_KEY`, `GHCR_PAT`.
+3. **Einmalig auf der VM:**
+   ```bash
+   sudo mkdir -p /opt/vista
+   sudo nano /opt/vista/.env   # JWT_KEY, MSSQL_SA_PASSWORD, SMTP_*, CONNECTION_STRINGS__DEFAULT, FRONTEND_ORIGIN
+   ```
+4. **Deploy:** Push auf `main` oder manuell über „Run workflow" (Actions).
+   - Standard: API + MSSQL + Redis → `docker compose -f docker-compose.azure.yml up -d`
+   - Mit KI (Ollama + Qdrant) → `docker compose -f docker-compose.azure.yml --profile ai up -d`
+
+*Workflow:* [`.github/workflows/azure-ghactions.yml`](.github/workflows/azure-ghactions.yml) · *Compose:* [`docker-compose.azure.yml`](docker-compose.azure.yml)
+
+---
+
 ### 🧪 6 Sicherheits- & Isolationstests (xUnit)
 
 ```bash
@@ -360,6 +377,23 @@ docker compose up -d --build
 
 ---
 
+### ☁️ Dağıtım / Deployment (Azure VM)
+
+1. **Ön koşul:** Docker kurulu bir Azure Ubuntu VM.
+2. **GitHub Secrets** ekle: `AZURE_VM_HOST`, `AZURE_VM_USER`, `AZURE_VM_SSH_KEY`, `GHCR_PAT`.
+3. **VM'de bir kez:**
+   ```bash
+   sudo mkdir -p /opt/vista
+   sudo nano /opt/vista/.env   # JWT_KEY, MSSQL_SA_PASSWORD, SMTP_*, CONNECTION_STRINGS__DEFAULT, FRONTEND_ORIGIN
+   ```
+4. **Deploy:** `main`'e push et veya Actions'ta "Run workflow" ile tetikle.
+   - Varsayılan: API + MSSQL + Redis → `docker compose -f docker-compose.azure.yml up -d`
+   - AI dahil (Ollama + Qdrant) → `docker compose -f docker-compose.azure.yml --profile ai up -d`
+
+*Workflow:* [`.github/workflows/azure-ghactions.yml`](.github/workflows/azure-ghactions.yml) · *Compose:* [`docker-compose.azure.yml`](docker-compose.azure.yml)
+
+---
+
 ### 🧪 6 Adet Güvenlik ve İzolasyon Testi (xUnit)
 
 ```bash
@@ -550,6 +584,23 @@ docker compose up -d --build
 
 * **Swagger UI:** `http://localhost:8080/swagger`
 * **Default Credentials:** Email: `admin@vista.local` | Password: `Test123!` | Role: `SuperAdmin`
+
+---
+
+### ☁️ Deployment (Azure VM)
+
+1. **Prerequisite:** An Azure Ubuntu VM with Docker installed.
+2. **Add GitHub Secrets:** `AZURE_VM_HOST`, `AZURE_VM_USER`, `AZURE_VM_SSH_KEY`, `GHCR_PAT`.
+3. **One-time VM setup:**
+   ```bash
+   sudo mkdir -p /opt/vista
+   sudo nano /opt/vista/.env   # JWT_KEY, MSSQL_SA_PASSWORD, SMTP_*, CONNECTION_STRINGS__DEFAULT, FRONTEND_ORIGIN
+   ```
+4. **Deploy:** Push to `main` or trigger manually via "Run workflow" (Actions).
+   - Default: API + MSSQL + Redis → `docker compose -f docker-compose.azure.yml up -d`
+   - Include AI (Ollama + Qdrant) → `docker compose -f docker-compose.azure.yml --profile ai up -d`
+
+*Workflow:* [`.github/workflows/azure-ghactions.yml`](.github/workflows/azure-ghactions.yml) · *Compose:* [`docker-compose.azure.yml`](docker-compose.azure.yml)
 
 ---
 

@@ -6,9 +6,8 @@ namespace Vista.Core.Models;
 /// <summary>
 /// Taslak — Ödeme kaydı. Gerçek ödeme entegrasyonu (Stripe/Iyzico) ileride eklenecek.
 /// </summary>
-public class Zahlung : BasisEntity
+public class Zahlung : MandantEntity
 {
-    public Guid MandantId { get; set; }
     public Mandant Mandant { get; set; } = null!;
 
     public Guid? RechnungId { get; set; }

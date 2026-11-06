@@ -6,9 +6,8 @@ namespace Vista.Core.Models;
 /// <summary>
 /// Taslak — Mandant'a ait abonelik planı.
 /// </summary>
-public class Abonnement : BasisEntity
+public class Abonnement : MandantEntity
 {
-    public Guid MandantId { get; set; }
     public Mandant Mandant { get; set; } = null!;
 
     public AbonnementPlan Plan { get; set; } = AbonnementPlan.Kostenlos;

@@ -17,7 +17,7 @@ namespace Vista.Core.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.18")
+                .HasAnnotation("ProductVersion", "9.0.22")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -210,7 +210,8 @@ namespace Vista.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MandantId");
+                    b.HasIndex("MandantId", "IstGeloescht")
+                        .HasDatabaseName("IX_Abonnement_Mandant_Geloescht");
 
                     b.ToTable("Abonnements");
                 });
@@ -260,6 +261,9 @@ namespace Vista.Core.Migrations
                     b.HasIndex("FilialeId");
 
                     b.HasIndex("KundeId");
+
+                    b.HasIndex("MandantId", "IstGeloescht")
+                        .HasDatabaseName("IX_Ansprechpartner_Mandant_Geloescht");
 
                     b.ToTable("Ansprechpartner");
                 });
@@ -403,6 +407,9 @@ namespace Vista.Core.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("MandantId", "IstGeloescht")
+                        .HasDatabaseName("IX_Bericht_Mandant_Geloescht");
+
                     b.ToTable("Berichte");
                 });
 
@@ -459,6 +466,9 @@ namespace Vista.Core.Migrations
 
                     b.HasIndex("RaumId");
 
+                    b.HasIndex("MandantId", "IstGeloescht")
+                        .HasDatabaseName("IX_ChatNachricht_Mandant_Geloescht");
+
                     b.ToTable("ChatNachrichten");
                 });
 
@@ -509,6 +519,9 @@ namespace Vista.Core.Migrations
 
                     b.HasIndex("TicketId");
 
+                    b.HasIndex("MandantId", "IstGeloescht")
+                        .HasDatabaseName("IX_ChatRaum_Mandant_Geloescht");
+
                     b.ToTable("ChatRaeume");
                 });
 
@@ -548,6 +561,9 @@ namespace Vista.Core.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("KundeId");
+
+                    b.HasIndex("MandantId", "IstGeloescht")
+                        .HasDatabaseName("IX_Filiale_Mandant_Geloescht");
 
                     b.ToTable("Filialen");
                 });
@@ -611,6 +627,9 @@ namespace Vista.Core.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("MandantId", "IstGeloescht")
+                        .HasDatabaseName("IX_Kunde_Mandant_Geloescht");
 
                     b.ToTable("Kunden");
                 });
@@ -699,6 +718,9 @@ namespace Vista.Core.Migrations
 
                     b.HasIndex("KundeId");
 
+                    b.HasIndex("MandantId", "IstGeloescht")
+                        .HasDatabaseName("IX_Projekt_Mandant_Geloescht");
+
                     b.ToTable("Projekte");
                 });
 
@@ -748,7 +770,8 @@ namespace Vista.Core.Migrations
 
                     b.HasIndex("AbonnementId");
 
-                    b.HasIndex("MandantId");
+                    b.HasIndex("MandantId", "IstGeloescht")
+                        .HasDatabaseName("IX_Rechnung_Mandant_Geloescht");
 
                     b.ToTable("Rechnungen");
                 });
@@ -854,6 +877,9 @@ namespace Vista.Core.Migrations
 
                     b.HasIndex("ZugewiesenAnId");
 
+                    b.HasIndex("MandantId", "IstGeloescht")
+                        .HasDatabaseName("IX_Ticket_Mandant_Geloescht");
+
                     b.ToTable("Tickets");
                 });
 
@@ -897,6 +923,9 @@ namespace Vista.Core.Migrations
                     b.HasIndex("AbsenderId");
 
                     b.HasIndex("TicketId");
+
+                    b.HasIndex("MandantId", "IstGeloescht")
+                        .HasDatabaseName("IX_TicketNachricht_Mandant_Geloescht");
 
                     b.ToTable("TicketNachrichten");
                 });
@@ -945,9 +974,10 @@ namespace Vista.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("MandantId");
-
                     b.HasIndex("RechnungId");
+
+                    b.HasIndex("MandantId", "IstGeloescht")
+                        .HasDatabaseName("IX_Zahlung_Mandant_Geloescht");
 
                     b.ToTable("Zahlungen");
                 });

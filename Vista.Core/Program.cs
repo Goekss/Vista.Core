@@ -30,6 +30,16 @@ Log.Logger = new LoggerConfiguration()
 var builder = WebApplication.CreateBuilder(args);
 builder.Host.UseSerilog();
 
+// TR: JWT anahtarı ortam değişkeninde zorunlu. Yer tutucu (placeholder) ile sadece Development çalışır.
+// DE: JWT-Schlüssel muss gesetzt sein. Platzhalterwerte sind nur im Development erlaubt.
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey) || jwtKey == "CHANGE_ME_IN_ENV" || jwtKey == "CHANGE_ME_JWT_KEY")
+{
+    if (!builder.Environment.IsDevelopment())
+        throw new InvalidOperationException("Jwt:Key ist nicht konfiguriert. Bitte setzen Sie den Schlüssel über eine Umgebungsvariable.");
+    Log.Warning("Jwt:Key verwendet einen Platzhalterwert — nur für Development erlaubt.");
+}
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddDbContext<AppDbContext>(opt =>
     opt.UseSqlServer(builder.Configuration.GetConnectionString("Default"), sqlOpt =>

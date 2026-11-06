@@ -1,0 +1,86 @@
+# Azure Ubuntu VM için üretim compose dosyası.
+# Workflow (azure-ghactions.yml) bu dosyayı VM'e kopyalar ve "docker compose up -d" ile başlatır.
+#
+# Kullanım:
+#   1) /opt/vista/.env dosyasına aşağıdaki değişkenlerin gerçek değerlerini yazın.
+#   2) AI özellikleri (Ollama + Qdrant) opsiyoneldir; sadece API+DB+Redis için:
+#        docker compose -f docker-compose.azure.yml up -d
+#      AI dahil her şey için:
+#        docker compose -f docker-compose.azure.yml --profile ai up -d
+
+services:
+  api:
+    image: ghcr.io/goekss/vista-core:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__Default=${CONNECTION_STRINGS__DEFAULT}
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER:-VistaCRM}
+      - Jwt__Audience=${JWT_AUDIENCE:-VistaCRM}
+      - SmtpSettings__Host=${SMTP_HOST}
+      - SmtpSettings__Port=${SMTP_PORT:-587}
+      - SmtpSettings__User=${SMTP_USER}
+      - SmtpSettings__Pass=${SMTP_PASS}
+      - Redis__Configuration=redis:6379
+      - Vika__OllamaEndpoint=http://ollama:11434
+      - Vika__Model=${VIKA_MODEL:-llama3.2:3b}
+      - Vika__EmbeddingModel=${VIKA_EMBEDDING_MODEL:-nomic-embed-text}
+      - Vika__QdrantEndpoint=http://qdrant:6333
+      - Vika__QdrantApiKey=
+      - SEED_ADMIN=${SEED_ADMIN:-false}
+      - SEED_ADMIN_PASSWORD=${SEED_ADMIN_PASSWORD}
+      - Cors__AllowedOrigins__0=${FRONTEND_ORIGIN}
+    depends_on:
+      - mssql
+      - redis
+    networks:
+      - vista
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    restart: unless-stopped
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
+    volumes:
+      - mssql-data:/var/opt/mssql
+    networks:
+      - vista
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+    networks:
+      - vista
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    profiles: ["ai"]
+    restart: unless-stopped
+    volumes:
+      - qdrant-data:/qdrant/storage
+    networks:
+      - vista
+
+  ollama:
+    image: ollama/ollama:latest
+    profiles: ["ai"]
+    restart: unless-stopped
+    volumes:
+      - ollama-data:/root/.ollama
+    networks:
+      - vista
+
+volumes:
+  mssql-data:
+  redis-data:
+  qdrant-data:
+  ollama-data:
+
+networks:
+  vista:

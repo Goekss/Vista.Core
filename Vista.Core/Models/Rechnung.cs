@@ -6,9 +6,8 @@ namespace Vista.Core.Models;
 /// <summary>
 /// Taslak — Fatura kaydı.
 /// </summary>
-public class Rechnung : BasisEntity
+public class Rechnung : MandantEntity
 {
-    public Guid MandantId { get; set; }
     public Mandant Mandant { get; set; } = null!;
 
     public Guid AbonnementId { get; set; }

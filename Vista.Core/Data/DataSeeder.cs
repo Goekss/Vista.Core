@@ -36,7 +36,14 @@ public static class DataSeeder
         }
 
         const string adminEmail = "admin@vista.local";
-        var adminPassword = config["SEED_ADMIN_PASSWORD"] ?? "Test123!";
+        var adminPassword = config["SEED_ADMIN_PASSWORD"];
+        if (string.IsNullOrWhiteSpace(adminPassword))
+        {
+            if (env.IsDevelopment())
+                adminPassword = "Test123!"; // TR: Sadece Development için varsayılan şifre.
+            else
+                throw new InvalidOperationException("SEED_ADMIN_PASSWORD muss in Produktion gesetzt werden.");
+        }
         var existingAdmin = await userManager.FindByEmailAsync(adminEmail);
 
         var resolvedMandantId = defaultMandantId == Guid.Empty
