@@ -6,6 +6,9 @@
 #   AZURE_VM_SSH_KEY   : Özel SSH anahtarı (PEM formatı)
 #   GHCR_PAT           : GitHub Personal Access Token (read:packages) — image çekmek için
 #
+# Deploy adımı varsayılan olarak KAPALI. Hazır olduğunda:
+#   Settings -> Secrets and variables -> Actions -> Variables -> AZURE_DEPLOY_ENABLED = true
+#
 # VM'de önceden yapılması gerekenler (bir kez):
 #   1) Docker kurulu olsun (curl -fsSL https://get.docker.com | sh)
 #   2) /opt/vista klasörü oluşturulsun
@@ -85,7 +88,7 @@ jobs:
     name: Azure VM'e deploy
     runs-on: ubuntu-latest
     needs: build-and-push
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && vars.AZURE_DEPLOY_ENABLED == 'true'
     steps:
       - name: Kodu al (compose dosyası için)
         uses: actions/checkout@v4
