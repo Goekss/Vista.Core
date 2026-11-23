@@ -20,7 +20,7 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
-  workflow_dispatch: # elle tetikleme
+  workflow_dispatch: # manuel action
 
 env:
   IMAGE: ghcr.io/goekss/vista-core
