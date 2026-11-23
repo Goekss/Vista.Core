@@ -1,11 +1,32 @@
 # 🌟 Vista.Core — Multi-Tenant CRM & Local AI SaaS Backend
 
-[![Vista CI/CD](https://github.com/Goekss/Vista.Core/actions/workflows/ci.yml/badge.svg)](https://github.com/Goekss/Vista.Core/actions/workflows/ci.yml)
+[![Vista CI/CD](https://github.com/Goekss/Vista.Core/actions/workflows/azure-ghactions.yml/badge.svg)](https://github.com/Goekss/Vista.Core/actions/workflows/azure-ghactions.yml)
 ![.NET 9](https://img.shields.io/badge/.NET-9.0-512BD4?logo=dotnet&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)
 ![Architecture](https://img.shields.io/badge/Architecture-Clean%20%26%20Multi--Tenant-green)
 ![Security](https://img.shields.io/badge/Security-Strict%20Tenant%20Filter%20%2B%202FA-red)
 ![AI Assistant](https://img.shields.io/badge/AI-Semantic%20Kernel%20%2B%20Ollama-blue)
+
+---
+
+## ☁️ Azure Deployment (CI/CD)
+
+Das Projekt wird automatisiert auf eine **Azure Ubuntu VM** deployed — GitHub Actions baut, pusht nach GHCR und startet die Container per SSH:
+
+```mermaid
+flowchart LR
+    PUSH["Push to main"] --> CI["GitHub Actions<br/>Build & Test"]
+    CI --> DOCKER["Docker Build & Push<br/>ghcr.io/goekss/vista-core"]
+    DOCKER --> VM["Azure Ubuntu VM<br/>docker compose up -d"]
+```
+
+| # | Job | Aufgabe |
+|---|-----|---------|
+| 1 | `build-and-test` | `dotnet restore` / `build` / `test` |
+| 2 | `build-and-push` | Docker-Image nach GHCR pushen |
+| 3 | `deploy` | `docker-compose.azure.yml` per SCP/SSH auf die VM |
+
+**Benötigte Secrets:** `AZURE_VM_HOST`, `AZURE_VM_USER`, `AZURE_VM_SSH_KEY`, `GHCR_PAT` · Workflow: [azure-ghactions.yml](.github/workflows/azure-ghactions.yml)
 
 **Sprache auswählen / Dil Seçin / Choose Language:**  
 [🇩🇪 Deutsch](#-deutsch) &nbsp;•&nbsp; [🇹🇷 Türkçe](#-türkçe) &nbsp;•&nbsp; [🇬🇧 English](#-english)
