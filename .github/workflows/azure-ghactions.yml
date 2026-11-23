@@ -85,7 +85,7 @@ jobs:
     name: Azure VM'e deploy
     runs-on: ubuntu-latest
     needs: build-and-push
-    if: github.ref == 'refs/heads/main'
+    if: false # GECICI: Azure VM secret'lari (AZURE_VM_HOST, AZURE_VM_USER, AZURE_VM_SSH_KEY, GHCR_PAT) eklenene kadar devre disi
     steps:
       - name: Kodu al (compose dosyası için)
         uses: actions/checkout@v4
